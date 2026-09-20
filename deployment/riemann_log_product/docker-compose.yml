@@ -1,0 +1,12 @@
+services:
+  riemann-log-product:
+    build:
+      context: ../..
+      dockerfile: deployment/riemann_log_product/Dockerfile
+    restart: unless-stopped
+    environment:
+      ROOT: /app
+      DATA_DIR: /data
+      INTERVAL: "1"
+    volumes:
+      - ./runtime:/data
