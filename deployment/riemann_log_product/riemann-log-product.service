@@ -1,0 +1,16 @@
+[Unit]
+Description=Riemann Log Product Hologram Resident Loop
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/blue-pleiadian-stars
+Environment=ROOT=/opt/blue-pleiadian-stars
+Environment=DATA_DIR=/var/lib/riemann-log-product
+Environment=INTERVAL=1
+ExecStart=/opt/blue-pleiadian-stars/deployment/riemann_log_product/resident_loop.sh
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
