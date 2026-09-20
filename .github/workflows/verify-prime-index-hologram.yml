@@ -1,0 +1,60 @@
+name: verify-prime-index-hologram
+
+on:
+  push:
+    paths:
+      - 'PRIME_INDEX_HOLOGRAM_TM.sh'
+      - 'PRIME_INDEX_HOLOGRAM_RESIDENT.sh'
+      - 'deployment/prime_index_hologram/**'
+      - '.github/workflows/verify-prime-index-hologram.yml'
+  pull_request:
+    paths:
+      - 'PRIME_INDEX_HOLOGRAM_TM.sh'
+      - 'PRIME_INDEX_HOLOGRAM_RESIDENT.sh'
+      - 'deployment/prime_index_hologram/**'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact kernel and persisted ordinal
+        run: |
+          set -eu
+          mkdir -p /tmp/prime-index-hologram
+          cd /tmp/prime-index-hologram
+          sh "$GITHUB_WORKSPACE/PRIME_INDEX_HOLOGRAM_TM.sh" 25 > /dev/null
+          python3 "$GITHUB_WORKSPACE/deployment/prime_index_hologram/healthcheck.py" state.json
+          python3 - <<'PY'
+          import json
+          s=json.load(open('state.json'))
+          assert s['n']==25 and s['p']==97 and s['pi_p']==25
+          assert s['prime'] is True and s['ordinal_exact'] is True
+          assert s['hologram']['reconstruct'] is True
+          PY
+          sh "$GITHUB_WORKSPACE/PRIME_INDEX_HOLOGRAM_TM.sh" > /dev/null
+          python3 "$GITHUB_WORKSPACE/deployment/prime_index_hologram/healthcheck.py" state.json
+          python3 - <<'PY'
+          import json
+          s=json.load(open('state.json'))
+          assert s['n']==26 and s['p']==101 and s['pi_p']==26
+          PY
+      - name: Verify resident loop advances state
+        run: |
+          set -eu
+          rm -rf /tmp/pi-resident
+          mkdir -p /tmp/pi-resident
+          set +e
+          timeout 4s env DATA_DIR=/tmp/pi-resident INTERVAL=1 sh ./PRIME_INDEX_HOLOGRAM_RESIDENT.sh > /dev/null
+          rc=$?
+          set -e
+          [ "$rc" -eq 124 ] || [ "$rc" -eq 0 ]
+          python3 deployment/prime_index_hologram/healthcheck.py /tmp/pi-resident/state.json
+          python3 - <<'PY'
+          import json
+          s=json.load(open('/tmp/pi-resident/state.json'))
+          assert s['n']>=2
+          PY
+      - name: Build container
+        run: docker build -f deployment/prime_index_hologram/Dockerfile .
