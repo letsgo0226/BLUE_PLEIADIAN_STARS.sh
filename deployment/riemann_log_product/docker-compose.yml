@@ -10,3 +10,9 @@ services:
       INTERVAL: "1"
     volumes:
       - ./runtime:/data
+    healthcheck:
+      test: ["CMD", "python3", "/app/healthcheck.py", "/data/state.json"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
