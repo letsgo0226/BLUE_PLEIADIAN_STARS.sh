@@ -1,0 +1,20 @@
+[Unit]
+Description=Exact Universal Zeta Holographic Pleiades Solver
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/pleiades
+Environment=S=1
+Environment=N=16
+Environment=INTERVAL=1
+Environment=DATA_DIR=/var/lib/pleiades
+Environment=VERIFIER=/opt/pleiades/verifier.py
+ExecStart=/opt/pleiades/deployment/run_forever.sh
+Restart=always
+RestartSec=1
+User=pleiades
+Group=pleiades
+
+[Install]
+WantedBy=multi-user.target
