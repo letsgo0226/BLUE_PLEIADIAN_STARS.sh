@@ -1,0 +1,38 @@
+name: verify-riemann-log-product
+
+on:
+  push:
+    paths:
+      - 'RIEMANN_LOG_PRODUCT_HOLOGRAM_TM.sh'
+      - 'deployment/riemann_log_product/**'
+      - '.github/workflows/verify-riemann-log-product.yml'
+  pull_request:
+    paths:
+      - 'RIEMANN_LOG_PRODUCT_HOLOGRAM_TM.sh'
+      - 'deployment/riemann_log_product/**'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run one hologram tick
+        run: |
+          mkdir -p .ci-rh && cd .ci-rh
+          sh ../RIEMANN_LOG_PRODUCT_HOLOGRAM_TM.sh > out.json
+          python3 ../deployment/riemann_log_product/healthcheck.py state.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open('state.json'))
+          assert x['x']==[1,2]
+          assert x['s']==[3,4]
+          assert x['hologram']['reconstruct'] is True
+          assert x['claims']['zero_decimals_preset'] is False
+          assert x['claims']['RH_proved'] is False
+          assert x['exact']=={'float':False,'sha':False}
+          print('RIEMANN_LOG_PRODUCT_HOLOGRAM_TM: OK')
+          PY
