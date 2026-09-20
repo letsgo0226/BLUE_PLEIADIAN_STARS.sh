@@ -1,0 +1,14 @@
+services:
+  pleiades:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile
+    restart: unless-stopped
+    environment:
+      S: "1"
+      N: "16"
+      INTERVAL: "1"
+      DATA_DIR: "/data"
+      VERIFIER: "/app/verifier.py"
+    volumes:
+      - ./runtime:/data
