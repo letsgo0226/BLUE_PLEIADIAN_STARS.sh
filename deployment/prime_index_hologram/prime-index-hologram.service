@@ -1,0 +1,15 @@
+[Unit]
+Description=Prime Index Hologram resident loop
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/blue-pleiadian-stars
+Environment=DATA_DIR=/var/lib/prime-index-hologram
+Environment=INTERVAL=1
+ExecStart=/bin/sh /opt/blue-pleiadian-stars/PRIME_INDEX_HOLOGRAM_RESIDENT.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
