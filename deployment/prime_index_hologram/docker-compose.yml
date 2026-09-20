@@ -1,0 +1,11 @@
+services:
+  prime-index-hologram:
+    build:
+      context: ../..
+      dockerfile: deployment/prime_index_hologram/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATA_DIR: /data
+      INTERVAL: "1"
+    volumes:
+      - ./runtime:/data
