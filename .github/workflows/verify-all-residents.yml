@@ -1,0 +1,44 @@
+name: verify-all-residents
+
+on:
+  push:
+    paths:
+      - 'solver.py'
+      - 'EXACT_PLEIADES_2KB_ONE_LINER.sh'
+      - 'EXACT_PLEIADES_2KB_RESIDENT.sh'
+      - 'v9_exact/**'
+      - 'RIEMANN_LOG_PRODUCT_HOLOGRAM_TM.sh'
+      - 'RIEMANN_GODEL_RATIONAL_SPECTRAL_HOLOGRAM_TM.sh'
+      - 'RIEMANN_GODEL_RATIONAL_SPECTRAL_RESIDENT.sh'
+      - 'PRIME_INDEX_HOLOGRAM_TM.sh'
+      - 'PRIME_INDEX_HOLOGRAM_RESIDENT.sh'
+      - 'deployment/all_residents/**'
+      - '.github/workflows/verify-all-residents.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Start all loops briefly
+        run: |
+          chmod +x deployment/all_residents/run_all.sh deployment/all_residents/daemon.sh
+          rm -rf /tmp/blue-all && mkdir -p /tmp/blue-all
+          set +e
+          timeout 5s env ROOT="$GITHUB_WORKSPACE" DATA_ROOT=/tmp/blue-all INTERVAL=1 sh deployment/all_residents/run_all.sh
+          rc=$?
+          set -e
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ] && [ "$rc" -ne 143 ]; then exit "$rc"; fi
+      - name: Verify all state invariants
+        run: |
+          python3 deployment/all_residents/healthcheck.py /tmp/blue-all
+          test -s /tmp/blue-all/exact_solver/state.json
+          test -s /tmp/blue-all/exact_2kb/state.json
+          test -s /tmp/blue-all/v9_exact/state_exact.json
+          test -s /tmp/blue-all/riemann_log_product/state.json
+          test -s /tmp/blue-all/riemann_godel_rational/state.json
+          test -s /tmp/blue-all/prime_index_hologram/state.json
