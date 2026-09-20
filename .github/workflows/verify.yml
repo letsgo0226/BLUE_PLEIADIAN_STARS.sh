@@ -1,0 +1,36 @@
+name: verify-exact-pleiades
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Exact smoke test
+        run: |
+          python3 solver.py \
+            --tick 6 \
+            --s 1 \
+            --N 4 \
+            --verifier verifier.py \
+            --state state.json \
+            --history history.jsonl \
+            --graph graph.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open("state.json"))
+          assert x["zeta_N"] == [25,12]
+          assert x["active"] == [1,2,3,6]
+          assert x["accepted"] == [6]
+          assert x["hologram"]["reconstruct"] is True
+          assert x["symmetry"]["graph_automorphism"] is True
+          assert x["invariants"]["sha_used"] is False
+          print("exact deployment verification: OK")
+          PY
