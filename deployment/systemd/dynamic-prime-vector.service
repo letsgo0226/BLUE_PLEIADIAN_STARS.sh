@@ -1,0 +1,23 @@
+[Unit]
+Description=BLUE PLEIADIAN STARS Dynamic Prime Vector resident
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pleiades
+Group=pleiades
+WorkingDirectory=/opt/BLUE_PLEIADIAN_STARS.sh
+Environment=HZ=1
+Environment=STATE_DIR=/var/lib/blue-pleiadian-stars/dynamic-prime-vector
+ExecStart=/bin/sh /opt/BLUE_PLEIADIAN_STARS.sh/deployment/dynamic_prime_vector/daemon.sh
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/blue-pleiadian-stars
+
+[Install]
+WantedBy=multi-user.target
