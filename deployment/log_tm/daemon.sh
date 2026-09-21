@@ -13,7 +13,7 @@ echo "$$">"$L/pid"
 echo "UHEF_LOG_TM resident: deadline-corrected 1 Hz state=$S halt=$H" >&2
 NEXT=$(python3 -c 'import time;print(time.monotonic())')
 while [ ! -e "$H" ];do
- LOG_TM_STATE="$S" MAX_TICKS=1 REV=0 sh "$ROOT/LOG_TM.sh"
+ LOG_TM_STATE="$S" CMD=step N=1 sh "$ROOT/LOG_TM.sh"
  NEXT=$(python3 -c "print(float('$NEXT')+1)")
  python3 -c "import time;t=float('$NEXT')-time.monotonic();time.sleep(t if t>0 else 0)"
 done
