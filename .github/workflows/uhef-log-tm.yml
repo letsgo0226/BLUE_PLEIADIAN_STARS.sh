@@ -1,0 +1,40 @@
+name: UHEF LOG(TM)
+on:
+  push:
+    paths:
+      - LOG_TM.sh
+      - deployment/log_tm/**
+      - .github/workflows/uhef-log-tm.yml
+  pull_request:
+    paths:
+      - LOG_TM.sh
+      - deployment/log_tm/**
+      - .github/workflows/uhef-log-tm.yml
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify one-line kernel and reversible state
+        shell: bash
+        run: |
+          test "$(wc -l < LOG_TM.sh)" -eq 1
+          test "$(wc -c < LOG_TM.sh)" -lt 2048
+          D="$(mktemp -d)"
+          LOG_TM_STATE="$D/state.json" MAX_TICKS=12 sh LOG_TM.sh >"$D/fwd"
+          python3 - "$D/state.json" <<'PY'
+          import json,sys
+          o=json.load(open(sys.argv[1]))
+          assert o["model"]=="UHEF_LOG_TM"
+          assert o["t"]==12 and o["n"]==5 and o["p"]==11
+          assert "rho=s-1" in o["L"]["U"]
+          assert o["L"]["PiP"][:4]==[12,1,5,11]
+          PY
+          LOG_TM_STATE="$D/state.json" MAX_TICKS=12 REV=1 sh LOG_TM.sh >"$D/rev"
+          python3 - "$D/state.json" <<'PY'
+          import json,sys
+          o=json.load(open(sys.argv[1]))
+          assert o["t"]==0 and o["n"]==0 and o["p"]==1
+          PY
+      - name: Verify daemon syntax
+        run: sh -n deployment/log_tm/daemon.sh
