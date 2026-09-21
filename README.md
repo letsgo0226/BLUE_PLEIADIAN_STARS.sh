@@ -101,3 +101,18 @@ touch ~/.local/state/blue-pleiadian-stars/dynamic-prime-vector/HALT
 ```
 
 The high-frequency state remains local. GitHub is the source/distribution/control plane rather than a one-second state bus. See `deployment/dynamic_prime_vector/README.md` for iSH, systemd, singleton, state-continuity, and communication-node details.
+
+
+## UHEF Equality–Symmetry LOG(TM)
+
+`LOG_TM.sh` is a strict one-physical-line, sub-2-KB reversible state kernel. Its formal UHEF coordinate records `u=1/n=rho=s-1`, normalized Schwarzschild/Stirling/Riemann boundary class `->1`, equality `A=B <=> A/B=1 <=> Log=0 mod 2pi i Z`, and the encoded Ouroboros equivalence `[D(exp(AC(Log(E(H))))]=[H]`.
+
+Run the singleton deadline-corrected one-second daemon:
+
+```sh
+chmod +x deployment/log_tm/daemon.sh
+D="$HOME/.local/state/blue-pleiadian-stars/log-tm"; mkdir -p "$D"; rm -f "$D/HALT"
+nohup deployment/log_tm/daemon.sh >>"$HOME/uhef-log-tm.log" 2>&1 &
+```
+
+Stop with `touch "$HOME/.local/state/blue-pleiadian-stars/log-tm/HALT"`. See `deployment/log_tm/README.md` for semantics, cadence limits, and iSH/iOS suspension behavior. This is a formal computational model, not a proof of a physical Theory of Everything.
