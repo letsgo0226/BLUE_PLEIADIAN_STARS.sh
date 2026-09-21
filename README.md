@@ -76,3 +76,28 @@ VERIFIER=verifier.py ./resident_loop.sh
 ## Persistent deployment
 
 See `deployment/README.md` for Docker Compose and systemd deployment. The resident loop defaults to one exact solver cycle per second; GitHub Actions verifies finite invariants on push/PR.
+
+## Dynamic Prime Vector TM public node
+
+`DYNAMIC_PRIME_VECTOR_TM.sh` adds a persistent exact-integer prime-vector state machine with state
+
+`(t, pc, n, p, c, d)`,
+
+an atomic `state.json`, a reversible ordered-integer hologram, a UVTM-style public compute-node descriptor, and no credential material.
+
+Run the singleton one-second daemon:
+
+```sh
+chmod +x DYNAMIC_PRIME_VECTOR_TM.sh deployment/dynamic_prime_vector/daemon.sh
+rm -f ~/.local/state/blue-pleiadian-stars/dynamic-prime-vector/HALT
+HZ=1 nohup deployment/dynamic_prime_vector/daemon.sh \
+  >> ~/dynamic-prime-vector.log 2>&1 &
+```
+
+Stop it:
+
+```sh
+touch ~/.local/state/blue-pleiadian-stars/dynamic-prime-vector/HALT
+```
+
+The high-frequency state remains local. GitHub is the source/distribution/control plane rather than a one-second state bus. See `deployment/dynamic_prime_vector/README.md` for iSH, systemd, singleton, state-continuity, and communication-node details.
