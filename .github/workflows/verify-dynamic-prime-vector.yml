@@ -1,0 +1,53 @@
+name: verify-dynamic-prime-vector
+
+on:
+  push:
+    paths:
+      - 'DYNAMIC_PRIME_VECTOR_TM.sh'
+      - 'deployment/dynamic_prime_vector/**'
+      - 'deployment/systemd/dynamic-prime-vector.service'
+      - '.github/workflows/verify-dynamic-prime-vector.yml'
+  pull_request:
+    paths:
+      - 'DYNAMIC_PRIME_VECTOR_TM.sh'
+      - 'deployment/dynamic_prime_vector/**'
+      - 'deployment/systemd/dynamic-prime-vector.service'
+      - '.github/workflows/verify-dynamic-prime-vector.yml'
+  workflow_dispatch:
+
+jobs:
+  finite-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run twelve finite ticks
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp=$(mktemp -d)
+          STATE_FILE="$tmp/state.json" \
+          HALT_FILE="$tmp/HALT" \
+          NODE_DESCRIPTOR="$tmp/channel.json" \
+          MAX_TICKS=12 HZ=1000 \
+          sh DYNAMIC_PRIME_VECTOR_TM.sh > "$tmp/output.jsonl"
+
+          python3 - "$tmp/state.json" "$tmp/channel.json" <<'PY'
+          import json,sys
+          s=json.load(open(sys.argv[1]))
+          d=json.load(open(sys.argv[2]))
+          assert s["model"] == "DYNAMIC_PRIME_VECTOR_TM"
+          assert s["t"] == 12
+          assert s["credential_value_present"] is False
+          h=s["hologram"]
+          assert h["reconstruct"] is True and h["sha"] is False
+          assert h["coeffs"] == [s[k] for k in h["keys"]]
+          assert d["model"] == "UVTM_PUBLIC_COMPUTE_NODE_DESCRIPTOR"
+          assert d["credential_value_present"] is False
+          p=int(s["p"])
+          assert p >= 2
+          assert all(p % q for q in range(2, int(p**0.5)+1))
+          print(s)
+          PY
